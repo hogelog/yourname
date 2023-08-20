@@ -14,17 +14,19 @@ EMAIL_DOMAIN = ENV["EMAIL_DOMAIN"]
 GOOGLE_CLIENT_OPTIONS = [ENV.fetch("GOOGLE_CLIENT_ID"), ENV.fetch("GOOGLE_CLIENT_SECRET"), {}]
 GOOGLE_CLIENT_OPTIONS.last[:hd] = EMAIL_DOMAIN if EMAIL_DOMAIN
 
-GITHUB_CLIENT_OPTIONS = [ENV.fetch("GITHUB_CLIENT_ID"), ENV.fetch("GITHUB_CLIENT_SECRET"), { scope: "user,user:email"}]
+GITHUB_CLIENT_OPTIONS = [ENV["GITHUB_CLIENT_ID"], ENV["GITHUB_CLIENT_SECRET"], { scope: "user,user:email"}]
+GITHUB_ENABLED = GITHUB_CLIENT_OPTIONS.all?
 
-SLACK_CLIENT_OPTIONS = [ENV.fetch("SLACK_CLIENT_ID"), ENV.fetch("SLACK_CLIENT_SECRET")]
+SLACK_CLIENT_OPTIONS = [ENV["SLACK_CLIENT_ID"], ENV["SLACK_CLIENT_SECRET"]]
+SLACK_ENABLED = SLACK_CLIENT_OPTIONS.all?
 
 class App < Sinatra::Base
   use Rack::Protection::AuthenticityToken
 
   use OmniAuth::Builder do
     provider OmniAuth::Strategies::GoogleOauth2, *GOOGLE_CLIENT_OPTIONS
-    provider OmniAuth::Strategies::GitHub, *GITHUB_CLIENT_OPTIONS
-    provider OmniAuth::Strategies::Slack, *SLACK_CLIENT_OPTIONS
+    provider OmniAuth::Strategies::GitHub, *GITHUB_CLIENT_OPTIONS if GITHUB_ENABLED
+    provider OmniAuth::Strategies::Slack, *SLACK_CLIENT_OPTIONS if SLACK_ENABLED
   end
 
   set :sessions, true
@@ -65,19 +67,23 @@ class App < Sinatra::Base
     redirect "/"
   end
 
-  get "/auth/github/callback" do
-    current_user[:github] = {
-      uid: request.env["omniauth.auth"]["uid"],
-      info: request.env["omniauth.auth"]["info"],
-    }
-    redirect "/"
+  if GITHUB_ENABLED
+    get "/auth/github/callback" do
+      current_user[:github] = {
+        uid: request.env["omniauth.auth"]["uid"],
+        info: request.env["omniauth.auth"]["info"],
+      }
+      redirect "/"
+    end
   end
 
-  get "/auth/slack/callback" do
-    current_user[:slack] = {
-      uid: request.env["omniauth.auth"]["uid"],
-      info: request.env["omniauth.auth"]["info"],
-    }
-    redirect "/"
+  if SLACK_ENABLED
+    get "/auth/slack/callback" do
+      current_user[:slack] = {
+        uid: request.env["omniauth.auth"]["uid"],
+        info: request.env["omniauth.auth"]["info"],
+      }
+      redirect "/"
+    end
   end
 end

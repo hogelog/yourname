@@ -1,22 +1,27 @@
 <h2>Google</h2>
 <pre><%= h current_user[:google].pretty_inspect %></pre>
 
-<h2>GitHub</h2>
-<% if current_user[:github] %>
-  <pre><%= h current_user[:github].pretty_inspect %></pre>
-<% else %>
-  <form action="/auth/github" method="post">
-    <input type="hidden" name="authenticity_token" value="<%= Rack::Protection::AuthenticityToken.token(env['rack.session']) %>" />
-    <input type="submit" value="Connect to GitHub">
-  </form>
+
+<% if GITHUB_ENABLED %>
+  <h2>GitHub</h2>
+  <% if current_user[:github] %>
+    <pre><%= h current_user[:github].pretty_inspect %></pre>
+  <% else %>
+    <form action="/auth/github" method="post">
+      <input type="hidden" name="authenticity_token" value="<%= Rack::Protection::AuthenticityToken.token(env['rack.session']) %>" />
+      <input type="submit" value="Connect to GitHub">
+    </form>
+  <% end %>
 <% end %>
 
-<h2>Slack</h2>
-<% if current_user[:slack] %>
-  <pre><%= h current_user[:slack].pretty_inspect %></pre>
-<% else %>
-  <form action="/auth/slack" method="post">
-    <input type="hidden" name="authenticity_token" value="<%= Rack::Protection::AuthenticityToken.token(env['rack.session']) %>" />
-    <input type="submit" value="Connect to Slack">
-  </form>
+<% if SLACK_ENABLED %>
+  <h2>Slack</h2>
+  <% if current_user[:slack] %>
+    <pre><%= h current_user[:slack].pretty_inspect %></pre>
+  <% else %>
+    <form action="/auth/slack" method="post">
+      <input type="hidden" name="authenticity_token" value="<%= Rack::Protection::AuthenticityToken.token(env['rack.session']) %>" />
+      <input type="submit" value="Connect to Slack">
+    </form>
+  <% end %>
 <% end %>
