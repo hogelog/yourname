@@ -1,2 +1,12 @@
 <h2>Google</h2>
-<pre><%= h current_user.google.pretty_inspect %></pre>
+<pre><%= h current_user[:google].pretty_inspect %></pre>
+
+<h2>GitHub</h2>
+<% if current_user[:github] %>
+  <pre><%= h current_user[:github].pretty_inspect %></pre>
+<% else %>
+  <form action="/auth/github" method="post">
+    <input type="hidden" name="authenticity_token" value="<%= Rack::Protection::AuthenticityToken.token(env['rack.session']) %>" />
+    <input type="submit" value="Connect to GitHub">
+  </form>
+<% end %>

@@ -2,26 +2,29 @@ require "sinatra/base"
 
 require "omniauth"
 require "omniauth-google-oauth2"
+require "omniauth-github"
 
 require "dotenv/load"
 
 SESSION_SECRET = ENV.fetch('SESSION_SECRET')
 
+EMAIL_DOMAIN = ENV["EMAIL_DOMAIN"] && ENV["EMAIL_DOMAIN"].split(",")
+
 GOOGLE_CLIENT_OPTIONS = [ENV.fetch("GOOGLE_CLIENT_ID"), ENV.fetch("GOOGLE_CLIENT_SECRET"), {}]
-GOOGLE_CLIENT_OPTIONS.last[:hd] = ENV["GOOGLE_CLIENT_HD"] if ENV["GOOGLE_CLIENT_HD"]
+GOOGLE_CLIENT_OPTIONS.last[:hd] = EMAIL_DOMAIN if EMAIL_DOMAIN
+
+GITHUB_CLIENT_OPTIONS = [ENV.fetch("GITHUB_CLIENT_ID"), ENV.fetch("GITHUB_CLIENT_SECRET"), { scope: "user,user:email"}]
 
 class App < Sinatra::Base
   use Rack::Protection::AuthenticityToken
 
   use OmniAuth::Builder do
     provider OmniAuth::Strategies::GoogleOauth2, *GOOGLE_CLIENT_OPTIONS
+    provider OmniAuth::Strategies::GitHub, *GITHUB_CLIENT_OPTIONS
   end
 
   set :sessions, true
   set :session_secret, SESSION_SECRET
-
-  User = Struct.new(:google, keyword_init: true)
-  UserGoogleAttributes = Struct.new(:uid, :info, keyword_init: true)
 
   helpers do
     def h(text)
@@ -49,12 +52,20 @@ class App < Sinatra::Base
   end
 
   get "/auth/google_oauth2/callback" do
-    session[:user] = User.new(
-      google: UserGoogleAttributes.new(
+    session[:user] = {
+      google: {
         uid: request.env["omniauth.auth"]["uid"],
         info: request.env["omniauth.auth"]["info"],
-      )
-    )
+      }
+    }
+    redirect "/"
+  end
+
+  get "/auth/github/callback" do
+    current_user[:github] = {
+      uid: request.env["omniauth.auth"]["uid"],
+      info: request.env["omniauth.auth"]["info"],
+    }
     redirect "/"
   end
 end

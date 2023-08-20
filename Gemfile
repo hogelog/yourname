@@ -7,4 +7,5 @@ gem "rack"
 gem "sinatra"
 
 gem "dotenv"
+gem "omniauth-github"
 gem "omniauth-google-oauth2"
