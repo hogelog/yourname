@@ -4,6 +4,7 @@ require "omniauth"
 require "omniauth-google-oauth2"
 require "omniauth-github"
 require "./lib/omniauth-slack"
+require "omniauth-esa"
 
 require "dotenv/load"
 
@@ -20,6 +21,9 @@ GITHUB_ENABLED = GITHUB_CLIENT_OPTIONS.all?
 SLACK_CLIENT_OPTIONS = [ENV["SLACK_CLIENT_ID"], ENV["SLACK_CLIENT_SECRET"]]
 SLACK_ENABLED = SLACK_CLIENT_OPTIONS.all?
 
+ESA_CLIENT_OPTIONS = [ENV["ESA_CLIENT_ID"], ENV["ESA_CLIENT_SECRET"]]
+ESA_ENABLED = ESA_CLIENT_OPTIONS.all?
+
 class App < Sinatra::Base
   use Rack::Protection::AuthenticityToken
 
@@ -27,6 +31,7 @@ class App < Sinatra::Base
     provider OmniAuth::Strategies::GoogleOauth2, *GOOGLE_CLIENT_OPTIONS
     provider OmniAuth::Strategies::GitHub, *GITHUB_CLIENT_OPTIONS if GITHUB_ENABLED
     provider OmniAuth::Strategies::Slack, *SLACK_CLIENT_OPTIONS if SLACK_ENABLED
+    provider OmniAuth::Strategies::Esa, *ESA_CLIENT_OPTIONS if ESA_ENABLED
   end
 
   set :sessions, true
@@ -80,6 +85,16 @@ class App < Sinatra::Base
   if SLACK_ENABLED
     get "/auth/slack/callback" do
       current_user[:slack] = {
+        uid: request.env["omniauth.auth"]["uid"],
+        info: request.env["omniauth.auth"]["info"],
+      }
+      redirect "/"
+    end
+  end
+
+  if ESA_ENABLED
+    get "/auth/esa/callback" do
+      current_user[:esa] = {
         uid: request.env["omniauth.auth"]["uid"],
         info: request.env["omniauth.auth"]["info"],
       }
