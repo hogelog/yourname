@@ -5,3 +5,6 @@ source "https://rubygems.org"
 gem "puma"
 gem "rack"
 gem "sinatra"
+
+gem "dotenv"
+gem "omniauth-google-oauth2"
