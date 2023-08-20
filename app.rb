@@ -45,9 +45,14 @@ class App < Sinatra::Base
     def current_user
       session[:user]
     end
+
+    def authenticity_token_tag
+      %[<input type="hidden" name="authenticity_token" value="#{ h Rack::Protection::AuthenticityToken.token(env['rack.session']) }" />]
+    end
   end
 
   before do
+    @debug = params[:debug]
     next if request.path.start_with?("/auth/")
     next if request.path == "/login"
     next if current_user
