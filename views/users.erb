@@ -1,0 +1,3 @@
+<% @users.each do |user| %>
+  <%= erb :_user, layout: false, locals: { user: user } %>
+<% end %>

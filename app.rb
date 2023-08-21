@@ -6,6 +6,8 @@ require "omniauth-github"
 require "./lib/omniauth-slack"
 require "omniauth-esa"
 
+require "./lib/service"
+
 require "dotenv/load"
 
 SESSION_SECRET = ENV.fetch('SESSION_SECRET')
@@ -37,13 +39,18 @@ class App < Sinatra::Base
   set :sessions, true
   set :session_secret, SESSION_SECRET
 
+  def initialize(app = nil, **_kwargs)
+    super
+    @service = Service.new
+  end
+
   helpers do
     def h(text)
       Rack::Utils.escape_html(text)
     end
 
     def current_user
-      session[:user]
+      @current_user ||= session.dig(:user, :email) && @service.user(session[:user][:email])
     end
 
     def authenticity_token_tag
@@ -63,46 +70,68 @@ class App < Sinatra::Base
     erb :index
   end
 
+  get "/users" do
+    @users = @service.users.get.to_a
+    erb :users
+  end
+
   get "/login" do
     erb :login
   end
 
   get "/auth/google_oauth2/callback" do
-    session[:user] = {
+    email = request.env["omniauth.auth"]["info"]["email"]
+    user_ref = @service.users.doc(email)
+    user_doc = user_ref.get
+    google_info = {
       google: {
         uid: request.env["omniauth.auth"]["uid"],
         info: request.env["omniauth.auth"]["info"],
       }
+    }
+    if !user_doc.data || user_doc.data[:google][:uid] != request.env["omniauth.auth"]["uid"]
+      user_ref.set(google_info)
+    else
+      user_ref.update(google_info)
+    end
+    session[:user] = {
+      email: email,
     }
     redirect "/"
   end
 
   if GITHUB_ENABLED
     get "/auth/github/callback" do
-      current_user[:github] = {
-        uid: request.env["omniauth.auth"]["uid"],
-        info: request.env["omniauth.auth"]["info"],
-      }
+      @service.users.doc(current_user.document_id).update({
+        github: {
+          uid: request.env["omniauth.auth"]["uid"],
+          info: request.env["omniauth.auth"]["info"],
+        }
+      })
       redirect "/"
     end
   end
 
   if SLACK_ENABLED
     get "/auth/slack/callback" do
-      current_user[:slack] = {
-        uid: request.env["omniauth.auth"]["uid"],
-        info: request.env["omniauth.auth"]["info"],
-      }
+      @service.users.doc(current_user.document_id).update({
+        slack: {
+          uid: request.env["omniauth.auth"]["uid"],
+          info: request.env["omniauth.auth"]["info"],
+        }
+      })
       redirect "/"
     end
   end
 
   if ESA_ENABLED
     get "/auth/esa/callback" do
-      current_user[:esa] = {
-        uid: request.env["omniauth.auth"]["uid"],
-        info: request.env["omniauth.auth"]["info"],
-      }
+      @service.users.doc(current_user.document_id).update({
+        esa: {
+          uid: request.env["omniauth.auth"]["uid"],
+          info: request.env["omniauth.auth"]["info"],
+        }
+      })
       redirect "/"
     end
   end
