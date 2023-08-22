@@ -56,7 +56,7 @@
         <%= user[:slack][:info][:email] %>
       </p>
       <p class="uk-margin-remove">
-        <%= link_url_tag "https://slack.com/" + user[:slack][:info][:name] %>
+        <%= link_url_tag "https://#{SLACK_TEAM_NAME}.slack.com/team/" + user[:slack][:uid] %>
       </p>
     </div>
   <% elsif connect_form && SLACK_ENABLED %>
@@ -84,7 +84,7 @@
         <%= user[:esa][:info][:email] %>
       </p>
       <p class="uk-margin-remove">
-        <%= link_url_tag "https://esa.com/members/" + user[:esa][:info][:nickname] %>
+        <%= link_url_tag "https://#{ESA_TEAM_NAME}.esa.io/members/" + user[:esa][:info][:nickname] %>
       </p>
     </div>
   <% elsif connect_form && ESA_ENABLED %>
