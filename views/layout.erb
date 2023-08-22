@@ -4,22 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= @title %></title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.24/dist/css/uikit.min.css" />
 </head>
 <body>
-  <div class="ui grid">
-    <div class="four wide column">
-      <div class="ui vertical fluid tabular menu">
-        <a class="item active" href="/">Home</a>
-        <a class="item" href="/users">Users</a>
-      </div>
+
+  <div uk-grid class="uk-grid-small">
+    <div class="uk-padding uk-padding-remove-top">
+      <ul class="uk-nav">
+        <li>
+          <a class="item active" href="/">Home</a>
+        </li>
+        <li>
+          <a class="item" href="/users">Users</a>
+        </li>
+      </ul>
     </div>
-    <div class="twelve wide stretched column">
-      <main class="main ui container">
+    <div class="uk-padding uk-padding-remove-top">
+      <main class="">
         <%= yield %>
       </main>
     </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.24/dist/js/uikit.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.24/dist/js/uikit-icons.min.js"></script>
 </body>
 </html>

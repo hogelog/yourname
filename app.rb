@@ -56,6 +56,10 @@ class App < Sinatra::Base
     def authenticity_token_tag
       %[<input type="hidden" name="authenticity_token" value="#{ h Rack::Protection::AuthenticityToken.token(env['rack.session']) }" />]
     end
+
+    def link_url_tag(url)
+      %[<a href="#{url}">#{url}</a>]
+    end
   end
 
   before do
